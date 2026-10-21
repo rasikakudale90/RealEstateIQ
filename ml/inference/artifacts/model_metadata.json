@@ -1,0 +1,58 @@
+{
+  "model_version": "1.0.0",
+  "algorithm": "Random Forest Regressor",
+  "features": {
+    "categorical": [
+      "location"
+    ],
+    "numerical": [
+      "total_sqft",
+      "bedrooms",
+      "bathrooms",
+      "year_built",
+      "has_garage"
+    ],
+    "order": [
+      "location",
+      "total_sqft",
+      "bedrooms",
+      "bathrooms",
+      "year_built",
+      "has_garage"
+    ]
+  },
+  "target": {
+    "name": "price",
+    "currency": "INR",
+    "unit": "Rupees"
+  },
+  "metrics": {
+    "MAE": 525263.07,
+    "RMSE": 707998.28,
+    "R2": 0.9619
+  },
+  "candidate_comparisons": {
+    "Linear Regression (Baseline)": {
+      "MAE": 754415.19,
+      "RMSE": 999802.33,
+      "R2": 0.9241
+    },
+    "Decision Tree Regressor": {
+      "MAE": 660014.36,
+      "RMSE": 883836.22,
+      "R2": 0.9407
+    },
+    "Random Forest Regressor": {
+      "MAE": 525263.07,
+      "RMSE": 707998.28,
+      "R2": 0.9619
+    }
+  },
+  "dataset": {
+    "source": "housing_data.csv",
+    "total_samples": 2500,
+    "train_samples": 2000,
+    "test_samples": 500
+  },
+  "training_timestamp": "2026-10-21T14:16:56.416392+00:00"
+}
