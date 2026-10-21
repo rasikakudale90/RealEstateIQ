@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: realestateiq-api
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: MODEL_ARTIFACT_PATH
+        value: ml/inference/artifacts/house_price_pipeline.joblib
+      - key: MODEL_METADATA_PATH
+        value: ml/inference/artifacts/model_metadata.json
+      - key: TARGET_CURRENCY
+        value: INR
