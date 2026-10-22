@@ -89,3 +89,16 @@ body {
   box-shadow: 0 1px 3px rgba(13, 11, 11, 0.02), 0 8px 24px rgba(13, 11, 11, 0.04);
 }
 
+@keyframes pulseSubtle {
+  0%, 100% {
+    transform: scale(1.04);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 14s ease-in-out infinite;
+}
+
