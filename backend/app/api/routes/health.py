@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Response, status
 from app.core.config import settings
 
+from ml.inference.model.loader import is_model_loaded
+
 router = APIRouter(tags=["Health & Diagnostics"])
 
 
@@ -26,8 +28,8 @@ def readiness_check(response: Response):
     Readiness probe verifying if required resources and model artifacts are available.
     Returns 200 OK when ready, or 503 Service Unavailable when model is missing.
     """
-    model_path = settings.MODEL_ARTIFACT_PATH
-    model_loaded = os.path.exists(model_path) and os.path.getsize(model_path) > 0
+    model_loaded = is_model_loaded()
+
 
     if not model_loaded:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE

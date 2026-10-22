@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+
+# Ensure both repo root (for ml) and backend dir (for app) are in sys.path
+backend_dir = Path(__file__).resolve().parent.parent
+repo_root = backend_dir.parent
+for p in [str(backend_dir), str(repo_root)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 from contextlib import asynccontextmanager
 import logging
 from fastapi import FastAPI
@@ -5,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import admin_router, health_router, predict_router, profile_router
 from app.core.config import settings
 from ml.inference.model.loader import get_pipeline
+
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
