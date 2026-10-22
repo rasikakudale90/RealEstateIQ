@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const playfair = Playfair_Display({
+  variable: "--font-display",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "RealEstateIQ — Intelligent Real Estate Price Prediction",
   description:
-    "AI-driven residential property valuation and estimation engine powered by machine learning regression pipelines, FastAPI, and Supabase.",
+    "Data-driven residential property price prediction powered by machine learning, editorial aesthetic, and instant valuations.",
 };
 
 export default function RootLayout({
@@ -27,11 +29,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${playfair.variable} ${plusJakarta.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
+      <body className="min-h-full flex flex-col bg-[#F1F0EF] text-[#0D0B0B] font-sans selection:bg-[#3C5484] selection:text-white">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
 }
+

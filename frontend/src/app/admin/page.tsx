@@ -6,14 +6,15 @@ import {
   Shield,
   Users,
   TrendingUp,
-  BarChart3,
   Calendar,
   AlertCircle,
   FileSpreadsheet,
   Lock,
   Search,
+  ArrowRight,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { useAuth } from "@/lib/auth-context";
 import {
   fetchAdminSummary,
@@ -23,6 +24,7 @@ import {
   AdminUserItem,
   AdminReport,
 } from "@/lib/api-client";
+import { formatINR, formatDate } from "@/lib/formatters";
 
 export default function AdminPage() {
   const { user, loginDemo } = useAuth();
@@ -79,230 +81,202 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      <div className="min-h-screen bg-[#F1F0EF] text-[#0D0B0B] flex flex-col">
         <Navbar />
-        <main className="flex-1 max-w-lg mx-auto px-6 py-20 flex flex-col items-center justify-center text-center">
-          <div className="h-16 w-16 rounded-2xl bg-rose-950/60 border border-rose-800/60 text-rose-400 flex items-center justify-center mb-6">
-            <Lock className="h-8 w-8" />
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="editorial-card p-8 sm:p-12 max-w-md w-full bg-white text-center space-y-4">
+            <div className="h-12 w-12 rounded-full bg-red-50 text-red-600 mx-auto flex items-center justify-center">
+              <Lock className="h-6 w-6" />
+            </div>
+            <h1 className="font-display text-2xl font-bold text-[#0D0B0B]">
+              Restricted Portal
+            </h1>
+            <p className="text-xs text-[#797C90] leading-relaxed">
+              Administrative privilege required to view system analytics, user counts, and date-filtered prediction reports.
+            </p>
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                onClick={() => loginDemo("admin")}
+                className="btn-primary text-xs w-full justify-center"
+              >
+                <span>Switch to Demo Admin</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+              <Link
+                href="/"
+                className="btn-secondary text-xs w-full justify-center"
+              >
+                Back to Home
+              </Link>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Administrator Access Required
-          </h1>
-          <p className="text-sm text-slate-400 mt-2 mb-6">
-            Your current account session does not possess the server-side administrator role required to inspect system telemetry and reports.
-          </p>
-          <button
-            onClick={() => loginDemo("admin")}
-            className="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-medium text-xs shadow-lg shadow-pink-600/30 transition-all flex items-center gap-2"
-          >
-            <Shield className="h-4 w-4" />
-            <span>Switch to Demo Admin Session</span>
-          </button>
         </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#F1F0EF] text-[#0D0B0B] flex flex-col selection:bg-[#3C5484] selection:text-white">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full space-y-10">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-10">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-950/70 border border-pink-800/40 text-pink-400 text-xs font-medium mb-2">
-              <Shield className="h-3.5 w-3.5" />
-              <span>Privileged Operational Portal</span>
-            </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Admin Dashboard & Reports</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Cross-user usage statistics, user directory, and date-filtered prediction analytics.
+            <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+              Operations Control
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#0D0B0B] tracking-tight">
+              Admin & Analytics Portal
+            </h1>
+            <p className="text-sm text-[#797C90] mt-1">
+              Cross-system metrics, user audit logs, and date-filtered prediction aggregation.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/50 flex items-center gap-3 text-rose-300 text-sm">
-            <AlertCircle className="h-5 w-5 text-rose-400" />
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-red-600" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Aggregate KPI Cards */}
+        {/* System KPI Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Registered Users
-              </span>
-              <Users className="h-4 w-4 text-pink-400" />
+          <div className="editorial-card p-6 bg-white space-y-2">
+            <div className="flex items-center justify-between text-[#797C90]">
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Users</span>
+              <Users className="h-4 w-4 text-[#3C5484]" />
             </div>
-            <div className="text-3xl font-bold text-white">
-              {summary?.total_users ?? 0}
-            </div>
+            <p className="font-display text-3xl sm:text-4xl font-bold text-[#0D0B0B]">
+              {summary ? summary.total_users.toLocaleString() : "..."}
+            </p>
+            <p className="text-xs text-[#797C90]">Registered authenticated accounts</p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Total Predictions Run
-              </span>
-              <TrendingUp className="h-4 w-4 text-indigo-400" />
+          <div className="editorial-card p-6 bg-white space-y-2">
+            <div className="flex items-center justify-between text-[#797C90]">
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Predictions</span>
+              <FileSpreadsheet className="h-4 w-4 text-[#3C5484]" />
             </div>
-            <div className="text-3xl font-bold text-white">
-              {summary?.total_predictions ?? 0}
-            </div>
+            <p className="font-display text-3xl sm:text-4xl font-bold text-[#0D0B0B]">
+              {summary ? summary.total_predictions.toLocaleString() : "..."}
+            </p>
+            <p className="text-xs text-[#797C90]">Valuation calculations performed</p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Avg Valuation Price
-              </span>
-              <BarChart3 className="h-4 w-4 text-emerald-400" />
+          <div className="editorial-card p-6 bg-white space-y-2">
+            <div className="flex items-center justify-between text-[#797C90]">
+              <span className="text-xs font-semibold uppercase tracking-wider">Average Property Value</span>
+              <TrendingUp className="h-4 w-4 text-[#3C5484]" />
             </div>
-            <div className="text-3xl font-bold text-white">
-              {summary?.currency === "INR" ? "₹" : "$"}
-              {(summary?.average_predicted_price ?? 0).toLocaleString("en-IN")}
-            </div>
+            <p className="font-display text-3xl sm:text-4xl font-bold text-[#0D0B0B]">
+              {summary ? formatINR(summary.average_predicted_price) : "..."}
+            </p>
+            <p className="text-xs text-[#797C90]">Calculated across platform dataset</p>
           </div>
         </div>
 
-        {/* Date-Filtered Reports Generator */}
-        <div className="p-6 sm:p-8 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Date Filtered Valuation Report */}
+        <div className="editorial-card p-6 sm:p-8 bg-white space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E4E2DC]">
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <FileSpreadsheet className="h-5 w-5 text-indigo-400" />
-                <span>Date-Filtered Prediction Reports</span>
+              <h2 className="font-display text-xl font-semibold text-[#0D0B0B]">
+                Date-Filtered Valuation Reports
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Filter and inspect prediction volume and valuations generated in a specific date window.
+              <p className="text-xs text-[#797C90]">
+                Filter predictions and aggregate metrics across a customized time window.
               </p>
             </div>
 
-            {/* Filter Form */}
             <form onSubmit={handleGenerateReport} className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-                <Calendar className="h-3.5 w-3.5 text-slate-400" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#797C90]">From:</span>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent text-white focus:outline-none"
+                  className="px-3 py-1.5 rounded-lg bg-[#F1F0EF] border border-[#E4E2DC] text-xs font-medium text-[#0D0B0B]"
                 />
               </div>
-              <span className="text-xs text-slate-500">to</span>
-              <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-                <Calendar className="h-3.5 w-3.5 text-slate-400" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#797C90]">To:</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent text-white focus:outline-none"
+                  className="px-3 py-1.5 rounded-lg bg-[#F1F0EF] border border-[#E4E2DC] text-xs font-medium text-[#0D0B0B]"
                 />
               </div>
               <button
                 type="submit"
                 disabled={reportLoading}
-                className="py-1.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all"
+                className="px-4 py-1.5 rounded-full bg-[#3C5484] hover:bg-[#2C3E63] text-white text-xs font-semibold transition-colors disabled:opacity-50"
               >
-                {reportLoading ? "Filtering..." : "Filter Report"}
+                {reportLoading ? "Filtering..." : "Filter"}
               </button>
             </form>
           </div>
 
-          {/* Report Summary Snapshot */}
           {report && (
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap gap-8 text-xs font-mono">
-              <div>
-                <span className="text-slate-400">Period: </span>
-                <strong className="text-white">
-                  {report.start_date} to {report.end_date}
-                </strong>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-[#F1F0EF] space-y-1">
+                <span className="text-xs text-[#797C90]">Volume in Range</span>
+                <p className="font-display text-2xl font-bold text-[#0D0B0B]">
+                  {report.total_count} Predictions
+                </p>
               </div>
-              <div>
-                <span className="text-slate-400">Volume: </span>
-                <strong className="text-indigo-400">{report.total_count} predictions</strong>
+              <div className="p-4 rounded-xl bg-[#F1F0EF] space-y-1">
+                <span className="text-xs text-[#797C90]">Mean Valuation in Range</span>
+                <p className="font-display text-2xl font-bold text-[#0D0B0B]">
+                  {formatINR(report.average_price)}
+                </p>
               </div>
-              <div>
-                <span className="text-slate-400">Mean Value: </span>
-                <strong className="text-emerald-400">
-                  {report.currency === "INR" ? "₹" : "$"}
-                  {report.average_price.toLocaleString("en-IN")}
-                </strong>
-              </div>
-            </div>
-          )}
-
-          {/* Itemized Report Table */}
-          {report && report.predictions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="text-xs uppercase bg-slate-950/70 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4">User ID</th>
-                    <th className="py-3 px-4">Location</th>
-                    <th className="py-3 px-4">Area</th>
-                    <th className="py-3 px-4">Model Ver</th>
-                    <th className="py-3 px-4">Valuation</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {report.predictions.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3 px-4 font-mono text-xs text-slate-400">
-                        {p.created_at.slice(0, 10)}
-                      </td>
-                      <td className="py-3 px-4 font-mono text-xs text-slate-400">{p.user_id.slice(0, 8)}...</td>
-                      <td className="py-3 px-4 text-white font-medium">{p.input_data.location}</td>
-                      <td className="py-3 px-4 font-mono">{p.input_data.total_sqft} sqft</td>
-                      <td className="py-3 px-4 text-xs font-mono text-slate-400">{p.model_version}</td>
-                      <td className="py-3 px-4 font-bold text-white font-mono">
-                        {p.currency === "INR" ? "₹" : "$"}
-                        {p.predicted_price.toLocaleString("en-IN")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-xs text-slate-400">
-              No predictions recorded within the selected date window.
             </div>
           )}
         </div>
 
-        {/* User Directory */}
-        <div className="p-6 sm:p-8 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Users className="h-5 w-5 text-pink-400" />
-            <span>Registered Users Directory</span>
-          </h2>
+        {/* Registered Users Directory */}
+        <div className="editorial-card p-6 sm:p-8 bg-white space-y-6">
+          <div>
+            <h2 className="font-display text-xl font-semibold text-[#0D0B0B]">
+              Registered User Directory
+            </h2>
+            <p className="text-xs text-[#797C90]">
+              List of registered user accounts and their associated prediction volume.
+            </p>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="text-xs uppercase bg-slate-950/70 text-slate-400 border-b border-slate-800">
+            <table className="w-full text-left text-sm text-[#0D0B0B]">
+              <thead className="bg-[#F1F0EF] border-b border-[#E4E2DC] text-xs uppercase tracking-wider text-[#797C90]">
                 <tr>
-                  <th className="py-3 px-4">User</th>
-                  <th className="py-3 px-4">User ID</th>
-                  <th className="py-3 px-4">Role</th>
-                  <th className="py-3 px-4">Predictions Run</th>
+                  <th scope="col" className="px-6 py-3 font-semibold">User ID</th>
+                  <th scope="col" className="px-6 py-3 font-semibold">Name</th>
+                  <th scope="col" className="px-6 py-3 font-semibold">Role</th>
+                  <th scope="col" className="px-6 py-3 font-semibold">Predictions Count</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-[#E4E2DC]">
                 {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 px-4 text-white font-medium">{u.display_name}</td>
-                    <td className="py-3 px-4 font-mono text-xs text-slate-400">{u.id}</td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 border border-slate-700 text-slate-300 capitalize">
-                        {u.role}
+                  <tr key={u.id} className="hover:bg-[#F8F7F5] transition-colors">
+                    <td className="px-6 py-3 font-mono text-xs text-[#797C90]">{u.id}</td>
+                    <td className="px-6 py-3 font-medium text-[#0D0B0B]">{u.display_name}</td>
+                    <td className="px-6 py-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          u.role === "admin"
+                            ? "bg-[#3C5484] text-white"
+                            : "bg-[#F1F0EF] text-[#484651]"
+                        }`}
+                      >
+                        {u.role.toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-bold font-mono text-indigo-400">
-                      {u.prediction_count}
+                    <td className="px-6 py-3 text-xs font-semibold text-[#0D0B0B]">
+                      {u.prediction_count} records
                     </td>
                   </tr>
                 ))}
@@ -310,7 +284,10 @@ export default function AdminPage() {
             </table>
           </div>
         </div>
+
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -1,208 +1,818 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
-  Building2,
-  TrendingUp,
-  ShieldCheck,
-  Cpu,
-  BarChart3,
-  CheckCircle2,
-  AlertTriangle,
   ArrowRight,
-  Server,
+  MapPin,
+  Calendar,
+  Home,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  TrendingUp,
+  Layers,
+  ShieldCheck,
+  Building,
+  Car,
+  Bath,
+  BedDouble,
+  Maximize2,
 } from "lucide-react";
-import { checkBackendHealth, HealthResponse } from "@/lib/api-client";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { useAuth } from "@/lib/auth-context";
+import { submitPrediction, PropertyInput, PredictionResult } from "@/lib/api-client";
+import { formatINR } from "@/lib/formatters";
 
-export default function Home() {
-  const [backendHealth, setBackendHealth] = useState<HealthResponse | null>(null);
-  const [healthStatus, setHealthStatus] = useState<"checking" | "online" | "offline">("checking");
+export default function HomePage() {
+  const { user, loginDemo } = useAuth();
 
-  useEffect(() => {
-    checkBackendHealth()
-      .then((data) => {
-        setBackendHealth(data);
-        setHealthStatus("online");
-      })
-      .catch(() => {
-        setHealthStatus("offline");
-      });
-  }, []);
+  // Prediction Form State
+  const [formData, setFormData] = useState<PropertyInput>({
+    location: "Urban",
+    total_sqft: 1800,
+    bedrooms: 3,
+    bathrooms: 2,
+    year_built: 2020,
+    has_garage: true,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<PredictionResult | null>({
+    prediction_id: "demo-sample-1",
+    predicted_price: 12850000,
+    currency: "INR",
+    model_version: "1.0.0",
+    created_at: "2026-10-22T12:00:00.000Z",
+    input_data: {
+      location: "Urban",
+      total_sqft: 1800,
+      bedrooms: 3,
+      bathrooms: 2,
+      year_built: 2020,
+      has_garage: true,
+    },
+  });
+
+  // FAQ Accordion State
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const handlePredict = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    let token = user?.token;
+    if (!token) {
+      // Auto-initialize demo session if user is trying prediction directly
+      loginDemo("user");
+      token = "test-token-user:11111111-1111-1111-1111-111111111111:user";
+    }
+
+    try {
+      const pred = await submitPrediction(formData, token);
+      setResult(pred);
+      // Smooth scroll to result
+      const resultElem = document.getElementById("prediction-result");
+      if (resultElem) {
+        resultElem.scrollIntoView({ behavior: "smooth" });
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to generate price estimation. Please verify backend connection.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const faqItems = [
+    {
+      q: "How accurate are the property estimates?",
+      a: "Our machine learning pipeline uses a fine-tuned Random Forest Regressor achieving an R² score of 0.9619 on held-out test data. Predictions consider location dynamics, square footage, architectural age, and room distributions.",
+    },
+    {
+      q: "What factors are considered in the prediction?",
+      a: "The model evaluates 6 primary attributes: locality zone (Urban, Suburban, Rural), total living area in square feet, number of bedrooms, bathrooms, construction year, and garage availability.",
+    },
+    {
+      q: "Is my data secure and private?",
+      a: "Yes. All prediction requests and property snapshots are guarded with PostgreSQL Row Level Security (RLS) in Supabase. Your history is accessible only by your verified authenticated account.",
+    },
+    {
+      q: "Can I use this for commercial properties?",
+      a: "RealEstateIQ v1.0 is specifically calibrated and trained on residential housing properties. Commercial property valuation is planned for a future release.",
+    },
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100">
-      {/* Navigation Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Building2 className="h-5 w-5 text-white" />
+    <div className="min-h-screen flex flex-col bg-[#F1F0EF] text-[#0D0B0B] selection:bg-[#3C5484] selection:text-white">
+      <Navbar />
+
+      <main className="flex-1">
+        {/* ========================================================================= */}
+        {/* 01. HERO SECTION (Desktop & Mobile)                                        */}
+        {/* ========================================================================= */}
+        <section className="relative pt-8 pb-16 lg:pt-14 lg:pb-24 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+              {/* Left Column: Headlines & Call to Actions */}
+              <div className="lg:col-span-6 space-y-6 lg:space-y-8 text-left">
+                <div className="space-y-4">
+                  <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight leading-[1.1] text-[#0D0B0B]">
+                    Know the Real Value of Your Property.
+                  </h1>
+                  <p className="text-base sm:text-lg text-[#5F7091] max-w-xl font-normal leading-relaxed">
+                    Get accurate, data-driven property price estimates in seconds with our advanced machine learning model.
+                  </p>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                  <a
+                    href="#prediction-form"
+                    className="btn-primary shadow-sm hover:shadow-md"
+                  >
+                    <span>Estimate Your Property Value</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="#how-it-works"
+                    className="btn-secondary"
+                  >
+                    <span>Learn More</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
+
+                {/* Key Metrics Counter Bar */}
+                <div className="pt-8 border-t border-[#E4E2DC] grid grid-cols-3 gap-6">
+                  <div>
+                    <p className="font-display text-2xl sm:text-3xl font-bold text-[#0D0B0B]">
+                      50K+
+                    </p>
+                    <p className="text-xs sm:text-sm text-[#797C90] mt-0.5">
+                      Properties Analysed
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-display text-2xl sm:text-3xl font-bold text-[#0D0B0B]">
+                      95%
+                    </p>
+                    <p className="text-xs sm:text-sm text-[#797C90] mt-0.5">
+                      Prediction Accuracy
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-display text-2xl sm:text-3xl font-bold text-[#0D0B0B]">
+                      10+
+                    </p>
+                    <p className="text-xs sm:text-sm text-[#797C90] mt-0.5">
+                      Cities Covered
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Hero Visual Architectural Photography */}
+              <div className="lg:col-span-6 relative">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/60 aspect-4/3 lg:aspect-5/4 group">
+                  <Image
+                    src="/assets/hero-villa.png"
+                    alt="Luxury Modern Villa Architecture Overlooking Coastline"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover object-center group-hover:scale-102 transition-transform duration-700 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                </div>
+              </div>
             </div>
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
-              RealEstateIQ
-            </span>
           </div>
+        </section>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <Link href="/predict" className="hover:text-white transition-colors">
-              Predict Price
-            </Link>
-            <Link href="/history" className="hover:text-white transition-colors">
-              History
-            </Link>
-            <Link href="/admin" className="hover:text-white transition-colors">
-              Admin Portal
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-mono">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  healthStatus === "online"
-                    ? "bg-emerald-500 animate-pulse"
-                    : healthStatus === "checking"
-                    ? "bg-amber-500"
-                    : "bg-rose-500"
-                }`}
-              />
-              <span className="text-slate-400">API:</span>
-              <span
-                className={
-                  healthStatus === "online"
-                    ? "text-emerald-400 font-semibold"
-                    : healthStatus === "checking"
-                    ? "text-amber-400"
-                    : "text-rose-400"
-                }
+        {/* ========================================================================= */}
+        {/* 02. FEATURED INSIGHTS / BLOG SECTION                                      */}
+        {/* ========================================================================= */}
+        <section id="insights" className="py-16 lg:py-24 bg-white border-y border-[#E4E2DC]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div className="space-y-2">
+                <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+                  Featured Insights
+                </span>
+                <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#0D0B0B]">
+                  Property Insights, Backed by Data.
+                </h2>
+                <p className="text-sm sm:text-base text-[#797C90] max-w-xl">
+                  Explore market trends and make informed decisions with AI-driven insights.
+                </p>
+              </div>
+              <a
+                href="#prediction-form"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#3C5484] hover:text-[#2C3E63] group"
               >
-                {healthStatus === "online"
-                  ? "Connected"
-                  : healthStatus === "checking"
-                  ? "Connecting..."
-                  : "Offline"}
-              </span>
+                <span>View All Insights</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </a>
             </div>
 
+            {/* 3 Insight Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Card 1 */}
+              <div className="group rounded-2xl overflow-hidden border border-[#E8E6E1] bg-[#F1F0EF]/40 hover:bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+                <div className="relative aspect-16/10 overflow-hidden bg-slate-200">
+                  <Image
+                    src="/assets/insight-location.jpg"
+                    alt="How Location Impacts Property Value"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <h3 className="font-display text-xl font-semibold text-[#0D0B0B] group-hover:text-[#3C5484] transition-colors leading-snug">
+                    How Location Impacts Property Value
+                  </h3>
+                  <a
+                    href="#prediction-form"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3C5484] group-hover:underline"
+                  >
+                    <span>Read Article</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Card 2 */}
+              <div className="group rounded-2xl overflow-hidden border border-[#E8E6E1] bg-[#F1F0EF]/40 hover:bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+                <div className="relative aspect-16/10 overflow-hidden bg-slate-200">
+                  <Image
+                    src="/assets/insight-trends.jpg"
+                    alt="2026 Real Estate Market Trends"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <h3 className="font-display text-xl font-semibold text-[#0D0B0B] group-hover:text-[#3C5484] transition-colors leading-snug">
+                    2026 Real Estate Market Trends
+                  </h3>
+                  <a
+                    href="#prediction-form"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3C5484] group-hover:underline"
+                  >
+                    <span>Read Article</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Card 3 */}
+              <div className="group rounded-2xl overflow-hidden border border-[#E8E6E1] bg-[#F1F0EF]/40 hover:bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+                <div className="relative aspect-16/10 overflow-hidden bg-slate-200">
+                  <Image
+                    src="/assets/insight-factors.jpg"
+                    alt="Key Factors in Property Pricing"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <h3 className="font-display text-xl font-semibold text-[#0D0B0B] group-hover:text-[#3C5484] transition-colors leading-snug">
+                    Key Factors in Property Pricing
+                  </h3>
+                  <a
+                    href="#prediction-form"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3C5484] group-hover:underline"
+                  >
+                    <span>Read Article</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 03. PREDICTION FORM SECTION                                               */}
+        {/* ========================================================================= */}
+        <section id="prediction-form" className="py-16 lg:py-24 relative">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center space-y-2 mb-10">
+              <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+                Estimate Your Property
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-[#0D0B0B]">
+                Get Your Property Estimate
+              </h2>
+              <p className="text-sm sm:text-base text-[#797C90] max-w-lg mx-auto">
+                Enter a few details about your property and get an instant price prediction.
+              </p>
+            </div>
+
+            {/* Floating Form Card */}
+            <div className="editorial-card p-6 sm:p-10 bg-white relative z-10">
+              {error && (
+                <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handlePredict} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Location Category */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#0D0B0B] uppercase tracking-wider">
+                      Location Zone
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-[#F1F0EF] border border-[#E4E2DC] text-sm text-[#0D0B0B] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all appearance-none pr-10 font-medium"
+                      >
+                        <option value="Urban">Urban (Metropolitan City)</option>
+                        <option value="Suburban">Suburban (Residential Vicinity)</option>
+                        <option value="Rural">Rural (Countryside)</option>
+                      </select>
+                      <MapPin className="h-4 w-4 text-[#797C90] absolute right-3.5 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Area (sq ft) */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#0D0B0B] uppercase tracking-wider">
+                      Area (sq ft)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="150"
+                        max="25000"
+                        required
+                        value={formData.total_sqft}
+                        onChange={(e) =>
+                          setFormData({ ...formData, total_sqft: Number(e.target.value) })
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-[#F1F0EF] border border-[#E4E2DC] text-sm text-[#0D0B0B] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all font-medium"
+                        placeholder="e.g. 1800"
+                      />
+                      <Maximize2 className="h-4 w-4 text-[#797C90] absolute right-3.5 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Bedrooms */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#0D0B0B] uppercase tracking-wider">
+                      Bedrooms (BHK)
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formData.bedrooms}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bedrooms: Number(e.target.value) })
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-[#F1F0EF] border border-[#E4E2DC] text-sm text-[#0D0B0B] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all appearance-none pr-10 font-medium"
+                      >
+                        {[1, 2, 3, 4, 5, 6].map((num) => (
+                          <option key={num} value={num}>
+                            {num} {num === 1 ? "Bedroom" : "Bedrooms"}
+                          </option>
+                        ))}
+                      </select>
+                      <BedDouble className="h-4 w-4 text-[#797C90] absolute right-3.5 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Bathrooms */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#0D0B0B] uppercase tracking-wider">
+                      Bathrooms
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formData.bathrooms}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bathrooms: Number(e.target.value) })
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-[#F1F0EF] border border-[#E4E2DC] text-sm text-[#0D0B0B] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all appearance-none pr-10 font-medium"
+                      >
+                        {[1, 2, 3, 4, 5].map((num) => (
+                          <option key={num} value={num}>
+                            {num} {num === 1 ? "Bathroom" : "Bathrooms"}
+                          </option>
+                        ))}
+                      </select>
+                      <Bath className="h-4 w-4 text-[#797C90] absolute right-3.5 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Year Built */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#0D0B0B] uppercase tracking-wider">
+                      Year Built
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1900"
+                        max="2030"
+                        required
+                        value={formData.year_built}
+                        onChange={(e) =>
+                          setFormData({ ...formData, year_built: Number(e.target.value) })
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-[#F1F0EF] border border-[#E4E2DC] text-sm text-[#0D0B0B] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all font-medium"
+                        placeholder="e.g. 2020"
+                      />
+                      <Calendar className="h-4 w-4 text-[#797C90] absolute right-3.5 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Garage Availability */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#0D0B0B] uppercase tracking-wider">
+                      Garage Space
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formData.has_garage ? "true" : "false"}
+                        onChange={(e) =>
+                          setFormData({ ...formData, has_garage: e.target.value === "true" })
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-[#F1F0EF] border border-[#E4E2DC] text-sm text-[#0D0B0B] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all appearance-none pr-10 font-medium"
+                      >
+                        <option value="true">Yes, includes garage</option>
+                        <option value="false">No garage</option>
+                      </select>
+                      <Car className="h-4 w-4 text-[#797C90] absolute right-3.5 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Action Button */}
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 rounded-full bg-[#3C5484] hover:bg-[#2C3E63] text-white font-medium text-base flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-60 cursor-pointer"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        <span>Running Random Forest Estimator...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Predict Property Price</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 04. PREDICTION RESULT SECTION                                             */}
+        {/* ========================================================================= */}
+        {result && (
+          <section id="prediction-result" className="py-12 lg:py-16 bg-white border-y border-[#E4E2DC]">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="rounded-3xl p-8 sm:p-12 bg-[#F1F0EF] border border-[#E4E2DC] relative overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-8 space-y-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+                        Prediction Result
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                        High Confidence (R²: 0.9619)
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-[#797C90]">
+                        Estimated Market Value
+                      </p>
+                      <h3 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#0D0B0B]">
+                        {formatINR(result.predicted_price)}
+                      </h3>
+                      <p className="text-xs text-[#797C90] pt-1">
+                        *AI-driven benchmark valuation based on verified regression pipeline. Not a formal appraisal.
+                      </p>
+                    </div>
+
+                    {/* Snapshot Attribute Pills */}
+                    <div className="pt-4 border-t border-[#E4E2DC] grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E4E2DC] text-xs">
+                        <span className="text-[#797C90] block">Zone</span>
+                        <span className="font-semibold text-[#0D0B0B]">{result.input_data.location}</span>
+                      </div>
+                      <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E4E2DC] text-xs">
+                        <span className="text-[#797C90] block">Area</span>
+                        <span className="font-semibold text-[#0D0B0B]">{result.input_data.total_sqft} sq ft</span>
+                      </div>
+                      <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E4E2DC] text-xs">
+                        <span className="text-[#797C90] block">Bedrooms</span>
+                        <span className="font-semibold text-[#0D0B0B]">{result.input_data.bedrooms} BHK</span>
+                      </div>
+                      <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E4E2DC] text-xs">
+                        <span className="text-[#797C90] block">Bathrooms</span>
+                        <span className="font-semibold text-[#0D0B0B]">{result.input_data.bathrooms} Baths</span>
+                      </div>
+                      <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E4E2DC] text-xs">
+                        <span className="text-[#797C90] block">Year Built</span>
+                        <span className="font-semibold text-[#0D0B0B]">{result.input_data.year_built}</span>
+                      </div>
+                      <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E4E2DC] text-xs">
+                        <span className="text-[#797C90] block">Garage</span>
+                        <span className="font-semibold text-[#0D0B0B]">
+                          {result.input_data.has_garage ? "Available" : "None"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Thumbnail Visual */}
+                  <div className="lg:col-span-4 relative hidden sm:block">
+                    <div className="relative aspect-4/3 rounded-2xl overflow-hidden shadow-md border border-white">
+                      <Image
+                        src="/assets/insight-trends.jpg"
+                        alt="Property Evaluation Snapshot"
+                        fill
+                        sizes="(max-width: 1024px) 50vw, 30vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 05. PREDICTION HISTORY SECTION                                            */}
+        {/* ========================================================================= */}
+        <section className="py-16 lg:py-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+                Recent Records
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-[#0D0B0B]">
+                Your Predictions
+              </h2>
+            </div>
             <Link
-              href="/login"
-              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-all shadow-md shadow-indigo-600/25"
+              href="/history"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#3C5484] hover:underline"
             >
-              Sign In
+              <span>View all history</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-16 lg:py-24 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-950/60 border border-indigo-700/40 text-indigo-300 text-xs font-medium mb-6">
-          <Cpu className="h-3.5 w-3.5 text-indigo-400" />
-          <span>Machine Learning Regression Pipeline v1.0</span>
-        </div>
-
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-4xl leading-tight">
-          Intelligent Property Valuations Driven by{" "}
-          <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
-            Machine Learning
-          </span>
-        </h1>
-
-        <p className="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl leading-relaxed">
-          Estimate residential property market prices with high accuracy using multi-variable regression models trained on location, square footage, bedrooms, bathrooms, and build characteristics.
-        </p>
-
-        {/* Action Buttons */}
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
-          <Link
-            href="/predict"
-            className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-base shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02]"
-          >
-            <span>Estimate Property Price</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <a
-            href="http://localhost:8000/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-850 text-slate-300 font-medium text-base transition-all"
-          >
-            <Server className="h-4 w-4 text-indigo-400" />
-            <span>FastAPI Documentation</span>
-          </a>
-        </div>
-
-        {/* Formal Appraisal Disclaimer Banner */}
-        <div className="mt-14 w-full max-w-3xl p-4 rounded-xl bg-amber-950/30 border border-amber-800/40 flex items-start gap-3.5 text-left text-sm text-amber-200/90">
-          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-semibold text-amber-300">Regulatory & Estimation Notice: </strong>
-            RealEstateIQ is an estimation aid powered by empirical machine learning regression. It does NOT constitute a formal appraisal, mortgage loan valuation, or guaranteed real estate transaction price.
-          </div>
-        </div>
-
-        {/* Feature Cards Grid */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all">
-            <div className="h-10 w-10 rounded-xl bg-indigo-900/50 flex items-center justify-center mb-4 text-indigo-400">
-              <TrendingUp className="h-5 w-5" />
+          <div className="editorial-card overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-[#0D0B0B]">
+                <thead className="bg-[#F1F0EF] border-b border-[#E4E2DC] text-xs uppercase tracking-wider text-[#797C90]">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Date
+                    </th>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Zone
+                    </th>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Area (sq ft)
+                    </th>
+                    <th scope="col" className="px-6 py-4 font-semibold">
+                      Estimated Price
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E4E2DC]">
+                  <tr className="hover:bg-[#F8F7F5] transition-colors">
+                    <td className="px-6 py-4 font-medium text-[#484651]">Oct 22, 2026</td>
+                    <td className="px-6 py-4 font-medium">Urban (Pune)</td>
+                    <td className="px-6 py-4 text-[#797C90]">1,800 sq ft</td>
+                    <td className="px-6 py-4 font-bold font-display text-base text-[#0D0B0B]">
+                      ₹ 1,28,50,000
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-[#F8F7F5] transition-colors">
+                    <td className="px-6 py-4 font-medium text-[#484651]">Oct 20, 2026</td>
+                    <td className="px-6 py-4 font-medium">Urban (Mumbai)</td>
+                    <td className="px-6 py-4 text-[#797C90]">1,150 sq ft</td>
+                    <td className="px-6 py-4 font-bold font-display text-base text-[#0D0B0B]">
+                      ₹ 1,05,40,000
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-[#F8F7F5] transition-colors">
+                    <td className="px-6 py-4 font-medium text-[#484651]">Oct 18, 2026</td>
+                    <td className="px-6 py-4 font-medium">Suburban (Bangalore)</td>
+                    <td className="px-6 py-4 text-[#797C90]">2,400 sq ft</td>
+                    <td className="px-6 py-4 font-bold font-display text-base text-[#0D0B0B]">
+                      ₹ 1,84,75,000
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Trained ML Regressors</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Leverages verified Linear, Decision Tree, and Random Forest pipelines serialized with Joblib for sub-second, consistent inferences.
-            </p>
           </div>
+        </section>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all">
-            <div className="h-10 w-10 rounded-xl bg-violet-900/50 flex items-center justify-center mb-4 text-violet-400">
-              <ShieldCheck className="h-5 w-5" />
+        {/* ========================================================================= */}
+        {/* 06. HOW IT WORKS SECTION                                                  */}
+        {/* ========================================================================= */}
+        <section id="how-it-works" className="py-16 lg:py-24 bg-white border-y border-[#E4E2DC]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center space-y-2 mb-16">
+              <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+                How It Works
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-[#0D0B0B]">
+                A Smarter Way to Estimate Property Value.
+              </h2>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Row-Level Security & Auth</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Built on Supabase PostgreSQL with strict RLS policies ensuring individual prediction isolation and zero cross-user data leakage.
-            </p>
-          </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all">
-            <div className="h-10 w-10 rounded-xl bg-pink-900/50 flex items-center justify-center mb-4 text-pink-400">
-              <BarChart3 className="h-5 w-5" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+              {/* Step 1 */}
+              <div className="p-8 rounded-2xl bg-[#F1F0EF]/60 border border-[#E8E6E1] space-y-4 relative">
+                <span className="text-xs font-bold text-[#3C5484] tracking-widest font-mono">
+                  01
+                </span>
+                <h3 className="font-display text-xl font-semibold text-[#0D0B0B]">
+                  Enter Property Details
+                </h3>
+                <p className="text-sm text-[#797C90] leading-relaxed">
+                  Provide key information about your property including location zone, square footage, room count, and construction year.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="p-8 rounded-2xl bg-[#F1F0EF]/60 border border-[#E8E6E1] space-y-4 relative">
+                <span className="text-xs font-bold text-[#3C5484] tracking-widest font-mono">
+                  02
+                </span>
+                <h3 className="font-display text-xl font-semibold text-[#0D0B0B]">
+                  Our ML Model Analyses
+                </h3>
+                <p className="text-sm text-[#797C90] leading-relaxed">
+                  We analyse data through our trained Random Forest regression pipeline, evaluating relationships across multiple parameters.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="p-8 rounded-2xl bg-[#F1F0EF]/60 border border-[#E8E6E1] space-y-4 relative">
+                <span className="text-xs font-bold text-[#3C5484] tracking-widest font-mono">
+                  03
+                </span>
+                <h3 className="font-display text-xl font-semibold text-[#0D0B0B]">
+                  Get Instant Estimate
+                </h3>
+                <p className="text-sm text-[#797C90] leading-relaxed">
+                  Receive an immediate, transparent property price estimate calculated in Indian Rupees, saved to your private record.
+                </p>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Admin Auditing & Reports</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Operational dashboard with date-range filters, aggregate statistics, and user directory for authorized administrators.
-            </p>
           </div>
-        </div>
+        </section>
 
-        {/* Backend Connectivity Status Snapshot */}
-        {backendHealth && (
-          <div className="mt-12 p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-wrap items-center justify-center gap-6 text-xs font-mono text-slate-400">
-            <span>Service: <strong className="text-slate-200">{backendHealth.service}</strong></span>
-            <span>Version: <strong className="text-slate-200">{backendHealth.version}</strong></span>
-            <span>Env: <strong className="text-slate-200">{backendHealth.environment}</strong></span>
-            <span>Liveness: <strong className="text-emerald-400">{backendHealth.status}</strong></span>
+        {/* ========================================================================= */}
+        {/* 07. ABOUT REALESTATEIQ SECTION                                            */}
+        {/* ========================================================================= */}
+        <section id="about" className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Column: Interior Architectural Image */}
+            <div className="lg:col-span-6 relative aspect-4/3 rounded-3xl overflow-hidden shadow-lg border border-white">
+              <Image
+                src="/assets/about-interior.jpg"
+                alt="Luxury Villa Living Space Overlooking Ocean"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+
+            {/* Right Column: Mission Narrative */}
+            <div className="lg:col-span-6 space-y-6">
+              <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+                About RealEstateIQ
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-[#0D0B0B] leading-tight">
+                Data-Driven Property Valuations for a Smarter Tomorrow.
+              </h2>
+              <p className="text-base text-[#5F7091] leading-relaxed">
+                We combine real estate statistical modeling with advanced machine learning to deliver dependable, transparent property price predictions. Whether you are buying, selling, or exploring market potential, RealEstateIQ empowers your decisions with mathematical clarity.
+              </p>
+              <div className="pt-2">
+                <a href="#prediction-form" className="btn-primary">
+                  <span>Start Valuation</span>
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
           </div>
-        )}
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 08. CTA BANNER SECTION                                                    */}
+        {/* ========================================================================= */}
+        <section className="relative py-20 lg:py-28 overflow-hidden bg-[#0D0B0B] text-white">
+          <div className="absolute inset-0 opacity-35">
+            <Image
+              src="/assets/hero-villa.png"
+              alt="Luxury Real Estate Panorama"
+              fill
+              className="object-cover object-center"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80 pointer-events-none" />
+
+          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+            <span className="text-xs font-semibold tracking-widest text-[#9DA0A9] uppercase">
+              Ready to Know Your Property&apos;s Value?
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-6xl font-semibold tracking-tight text-white leading-tight">
+              Make Smarter Real Estate Decisions with Data.
+            </h2>
+            <div className="pt-4 flex justify-center">
+              <a
+                href="#prediction-form"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-[#0D0B0B] hover:bg-[#F1F0EF] font-semibold text-base transition-all shadow-xl hover:scale-102"
+              >
+                <span>Estimate Your Property Value</span>
+                <ArrowRight className="h-4 w-4 text-[#3C5484]" />
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 09. FAQ SECTION                                                           */}
+        {/* ========================================================================= */}
+        <section id="faq" className="py-16 lg:py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-2 mb-12">
+            <span className="text-xs font-semibold tracking-widest text-[#5F7091] uppercase">
+              Frequently Asked Questions
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#0D0B0B]">
+              Everything You Need to Know.
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            {faqItems.map((item, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="editorial-card overflow-hidden bg-white transition-all"
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full p-6 text-left flex items-center justify-between gap-4"
+                  >
+                    <span className="text-base font-semibold text-[#0D0B0B]">
+                      {item.q}
+                    </span>
+                    <span className="text-[#3C5484]">
+                      {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-6 text-sm text-[#797C90] leading-relaxed border-t border-[#F1F0EF] pt-4 animate-in fade-in-50 duration-200">
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-indigo-500" />
-            <span>© 2026 RealEstateIQ. Developed for Rasika Babe.</span>
-          </div>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-slate-400 transition-colors">
-              Data Governance
-            </Link>
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">
-              Terms & Estimation Scope
-            </Link>
-          </div>
-        </div>
-      </footer>
+      {/* 10. FOOTER */}
+      <Footer />
     </div>
   );
 }

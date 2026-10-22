@@ -1,26 +1,91 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-display), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", sans-serif;
+  --color-page: #F1F0EF;
+  --color-surface: #FFFFFF;
+  --color-dark: #0D0B0B;
+  --color-slate-muted: #5F7091;
+  --color-slate-subtle: #797C90;
+  --color-navy-primary: #3C5484;
+  --color-navy-hover: #2C3E63;
+  --color-border-subtle: #E4E2DC;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --bg-page: #F1F0EF;
+  --bg-surface: #FFFFFF;
+  --text-dark: #0D0B0B;
+  --text-muted: #5F7091;
+  --accent-navy: #3C5484;
+  --border-light: #E4E2DC;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-dark);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Custom Editorial Typography Classes */
+.font-display {
+  font-family: var(--font-serif);
+}
+
+.font-body {
+  font-family: var(--font-sans);
+}
+
+/* Restrained Pill Button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #3C5484;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover {
+  background-color: #2C3E63;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(60, 84, 132, 0.15);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #0D0B0B;
+  border: 1px solid #D5D2CA;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-secondary:hover {
+  background-color: #FFFFFF;
+  border-color: #0D0B0B;
+  transform: translateY(-1px);
+}
+
+/* Editorial Surface Card */
+.editorial-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgba(13, 11, 11, 0.02), 0 8px 24px rgba(13, 11, 11, 0.04);
+}
+
