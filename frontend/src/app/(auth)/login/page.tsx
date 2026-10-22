@@ -97,10 +97,26 @@ export default function LoginPage() {
             <span>{submitting ? "Signing in..." : "Sign In"}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-[#E4E2DC]" />
+            <span className="flex-shrink mx-3 text-[11px] uppercase tracking-wider text-[#797C90]">
+              New to RealEstateIQ?
+            </span>
+            <div className="flex-grow border-t border-[#E4E2DC]" />
+          </div>
+
+          <Link
+            href="/register"
+            className="w-full py-2.5 rounded-full border border-[#3C5484] text-[#3C5484] hover:bg-[#3C5484]/10 text-sm font-semibold flex items-center justify-center gap-1.5 transition-all text-center"
+          >
+            <span>Create New Account</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </form>
 
         {/* Quick Demo Sandbox Switcher */}
-        <div className="pt-4 border-t border-[#E4E2DC] space-y-3">
+        <div className="pt-3 border-t border-[#E4E2DC] space-y-3">
           <p className="text-center text-xs text-[#797C90]">
             Or explore immediately using instant demo sandbox:
           </p>
@@ -122,11 +138,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="text-center pt-2">
+        <div className="text-center pt-1">
           <p className="text-xs text-[#797C90]">
-            Don&apos;t have an account?{" "}
+            Already have an account? Sign in above or{" "}
             <Link href="/register" className="text-[#3C5484] font-semibold hover:underline">
-              Register now
+              Register here
             </Link>
           </p>
         </div>

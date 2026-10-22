@@ -12,6 +12,7 @@ import {
   X,
   Building2,
   ArrowRight,
+  Search,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -22,6 +23,7 @@ import { formatINR, formatDate } from "@/lib/formatters";
 export default function HistoryPage() {
   const { user, loginDemo } = useAuth();
   const [predictions, setPredictions] = useState<PredictionHistoryItem[]>([]);
+  const [filterQuery, setFilterQuery] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -102,6 +104,44 @@ export default function HistoryPage() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Table Search Filter Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#797C90]" />
+                  <input
+                    type="text"
+                    value={filterQuery}
+                    onChange={(e) => setFilterQuery(e.target.value)}
+                    placeholder="Search by zone, sqft, price, or ID..."
+                    className="w-full pl-9 pr-4 py-2 text-xs rounded-full bg-[#F1F0EF] border border-[#E4E2DC] text-[#0D0B0B] placeholder-[#797C90] focus:outline-hidden focus:border-[#3C5484] focus:bg-white transition-all"
+                  />
+                  {filterQuery && (
+                    <button
+                      onClick={() => setFilterQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#797C90] hover:text-[#0D0B0B]"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <span className="text-xs text-[#797C90] self-center sm:self-auto">
+                  Showing{" "}
+                  {
+                    predictions.filter((p) => {
+                      if (!filterQuery.trim()) return true;
+                      const q = filterQuery.toLowerCase();
+                      return (
+                        p.id.toLowerCase().includes(q) ||
+                        p.input_data.location.toLowerCase().includes(q) ||
+                        p.input_data.total_sqft.toString().includes(q) ||
+                        p.predicted_price.toString().includes(q)
+                      );
+                    }).length
+                  }{" "}
+                  of {total} records
+                </span>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-[#0D0B0B]">
                   <thead className="bg-[#F1F0EF] border-b border-[#E4E2DC] text-xs uppercase tracking-wider text-[#797C90]">
@@ -127,10 +167,21 @@ export default function HistoryPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E4E2DC]">
-                    {predictions.map((p) => (
-                      <tr key={p.id} className="hover:bg-[#F8F7F5] transition-colors">
-                        <td className="px-6 py-4 text-xs text-[#797C90]">
-                          {formatDate(p.created_at)}
+                    {predictions
+                      .filter((p) => {
+                        if (!filterQuery.trim()) return true;
+                        const q = filterQuery.toLowerCase();
+                        return (
+                          p.id.toLowerCase().includes(q) ||
+                          p.input_data.location.toLowerCase().includes(q) ||
+                          p.input_data.total_sqft.toString().includes(q) ||
+                          p.predicted_price.toString().includes(q)
+                        );
+                      })
+                      .map((p) => (
+                        <tr key={p.id} className="hover:bg-[#F8F7F5] transition-colors">
+                          <td className="px-6 py-4 text-xs text-[#797C90]">
+                            {formatDate(p.created_at)}
                         </td>
                         <td className="px-6 py-4 font-medium text-[#0D0B0B]">
                           {p.input_data.location}

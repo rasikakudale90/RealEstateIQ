@@ -15,6 +15,7 @@ interface AuthContextType {
   user: UserSession | null;
   loading: boolean;
   login: (email: string, password?: string) => Promise<void>;
+  register: (name: string, email: string, password?: string) => Promise<void>;
   loginDemo: (role?: "user" | "admin") => void;
   logout: () => void;
 }
@@ -81,6 +82,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginDemo(role);
   };
 
+  const register = async (name: string, email: string, password?: string) => {
+    const isSupabaseConfigured =
+      Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+      !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("example-project");
+
+    if (isSupabaseConfigured && password) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data.session && data.user) {
+        const sessionUser: UserSession = {
+          id: data.user.id,
+          email: data.user.email || email,
+          display_name: name || data.user.user_metadata?.full_name || email.split("@")[0],
+          role: "user",
+          token: data.session.access_token,
+        };
+        setUser(sessionUser);
+        localStorage.setItem("realestateiq_session", JSON.stringify(sessionUser));
+        return;
+      }
+    }
+
+    // Local / development session creation
+    const newId =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `usr-${Date.now()}`;
+    const role: "user" | "admin" = email.includes("admin") ? "admin" : "user";
+    const sessionUser: UserSession = {
+      id: newId,
+      email,
+      display_name: name.trim() || email.split("@")[0],
+      role,
+      token: `token-${role}:${newId}:${role}`,
+    };
+    setUser(sessionUser);
+    localStorage.setItem("realestateiq_session", JSON.stringify(sessionUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("realestateiq_session");
@@ -88,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginDemo, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginDemo, logout }}>
       {children}
     </AuthContext.Provider>
   );

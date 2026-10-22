@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +27,7 @@ export default function RegisterPage() {
 
     setSubmitting(true);
     try {
-      await login(email, password);
+      await register(name, email, password);
       router.push("/predict");
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   MapPin,
@@ -40,6 +40,33 @@ export default function PredictPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Pre-fill form if query parameters exist from search palette
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const loc = params.get("location");
+      const sqft = params.get("sqft");
+      const bed = params.get("bed");
+      const bath = params.get("bath");
+      const year = params.get("year");
+      const garage = params.get("garage");
+
+      if (loc || sqft || bed || bath || year || garage !== null) {
+        setFormData((prev) => ({
+          location:
+            loc === "Urban" || loc === "Suburban" || loc === "Rural"
+              ? loc
+              : prev.location,
+          total_sqft: sqft ? parseInt(sqft, 10) || prev.total_sqft : prev.total_sqft,
+          bedrooms: bed ? parseInt(bed, 10) || prev.bedrooms : prev.bedrooms,
+          bathrooms: bath ? parseInt(bath, 10) || prev.bathrooms : prev.bathrooms,
+          year_built: year ? parseInt(year, 10) || prev.year_built : prev.year_built,
+          has_garage: garage !== null ? garage === "true" : prev.has_garage,
+        }));
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
